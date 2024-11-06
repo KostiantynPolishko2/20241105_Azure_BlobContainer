@@ -11,4 +11,8 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="12.22.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="AzureBlobs\" />
+  </ItemGroup>
+
 </Project>
