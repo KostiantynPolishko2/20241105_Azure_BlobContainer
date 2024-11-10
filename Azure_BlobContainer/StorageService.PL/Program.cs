@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Azure;
+using StorageService.PL.Interfaces;
+using StorageService.PL.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -11,6 +13,7 @@ builder.Services.AddAzureClients(clientBuilder =>
 {
     clientBuilder.AddBlobServiceClient(builder.Configuration.GetConnectionString("azurestorage_docfiles:blob")!, preferMsi: true);
 });
+builder.Services.AddScoped<IBlobClientRepository, BlobClientRepository>();
 
 var app = builder.Build();
 

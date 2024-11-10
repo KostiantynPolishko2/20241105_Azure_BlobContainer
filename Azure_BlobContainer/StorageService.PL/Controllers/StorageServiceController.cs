@@ -1,5 +1,7 @@
-using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Mvc;
+using StorageService.PL.Interfaces;
+using StorageService.PL.Repositories;
+using System.Net;
 
 namespace StorageService.PL.Controllers
 {
@@ -8,18 +10,25 @@ namespace StorageService.PL.Controllers
     public class StorageServiceController : ControllerBase
     {
         private readonly ILogger<StorageServiceController> logger;
-        private readonly BlobServiceClient blobServiceClient;
+        private IBlobClientRepository blobClientRepository { get; }
 
-        public StorageServiceController(ILogger<StorageServiceController> logger, BlobServiceClient blobServiceClient)
+        public StorageServiceController(ILogger<StorageServiceController> logger, IBlobClientRepository blobClientRepository)
         {
             this.logger = logger;
-            this.blobServiceClient = blobServiceClient;
+            this.blobClientRepository = blobClientRepository;
         }
 
         [HttpGet("storage-name", Name = "GetStorageName")]
         public ActionResult<string> GetStorageName()
         {
-            return blobServiceClient.AccountName;
+            try
+            {
+                return blobClientRepository.getStorageName();
+            }
+            catch (Exception ex)
+            {
+                return NotFound($"msg: {ex.Message}, code: {404}, {HttpStatusCode.NotFound}");
+            }
         }
     }
 }
