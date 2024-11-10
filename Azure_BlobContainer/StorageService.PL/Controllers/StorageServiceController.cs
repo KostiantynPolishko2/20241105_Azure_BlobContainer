@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using StorageService.PL.Entities;
+using StorageService.PL.Infrastructures;
 using StorageService.PL.Interfaces;
-using StorageService.PL.Repositories;
 using System.Net;
 
 namespace StorageService.PL.Controllers
@@ -27,7 +28,48 @@ namespace StorageService.PL.Controllers
             }
             catch (Exception ex)
             {
-                return NotFound($"msg: {ex.Message}, code: {404}, {HttpStatusCode.NotFound}");
+                return NotFound($"Error! msg: {ex.Message}, code: {404}, {HttpStatusCode.NotFound}");
+            }
+        }
+
+        [HttpGet("container-names", Name = "GetContainerNames")]
+        public ActionResult<IEnumerable<string>> GetContainerNames()
+        {
+            try
+            {
+                return this.blobClientRepository.getContainerNames().ToArray();
+            }
+            catch (BlobClientException ex)
+            {
+                return NotFound($"Error! msg: {ex.Message} {ex.property}, source: {ex.Source}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error! msg: {ex.Message}, details: {ex.InnerException}");
+            }
+        }
+
+        [HttpGet("blob-items/{containerName}", Name = "GetBlobItems")]
+        public ActionResult<IEnumerable<UserBlobItem>> GetBlobItems([FromRoute] string? containerName)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(containerName))
+                    throw new ArgumentNullException();
+
+                return this.blobClientRepository.getBlobItems(containerName).ToArray();
+            }
+            catch (BlobClientException ex)
+            {
+                return NotFound($"Error! msg: {ex.Message} {ex.property}, source: {ex.Source}");
+            }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest($"Error! msg: {ex.Message}, details: {ex.InnerException}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error! msg: {ex.Message}, details: {ex.InnerException}");
             }
         }
     }
