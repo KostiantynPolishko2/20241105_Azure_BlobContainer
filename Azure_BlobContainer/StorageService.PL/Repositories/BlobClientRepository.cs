@@ -10,10 +10,12 @@ namespace StorageService.PL.Repositories
     public class BlobClientRepository:IBlobClientRepository
     {
         private readonly BlobServiceClient blobServiceClient;
+        private readonly string relativePath;
 
         public BlobClientRepository(BlobServiceClient blobServiceClient)
         {
             this.blobServiceClient = blobServiceClient;
+            this.relativePath = @"AzureDownloads/";
         }
 
         private void isBlobServiceClient()
@@ -49,7 +51,7 @@ namespace StorageService.PL.Repositories
             return names;
         }
 
-        public IEnumerable<UserBlobItem> getBlobItems(string containerName)
+        public IEnumerable<UserBlobItem> getBlobItemNames(string containerName)
         {
             Pageable<BlobItem>? allBlobItems = this.blobServiceClient.GetBlobContainerClient(containerName)?.GetBlobs();
 
@@ -68,6 +70,30 @@ namespace StorageService.PL.Repositories
                 throw new BlobClientException("all deleted", "BlobItem");
 
             return blobItems;
+        }
+
+        public void downdloadBlobItem(string containerName, string blobName)
+        {
+            BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            if (blobContainerClient == null)
+                throw new BlobClientException("no data", $"BlobContainerClient({containerName})");
+
+            List<UserBlobItem> userBlobItems = getBlobItemNames(containerName).ToList();
+            var userBlobItem = userBlobItems.FirstOrDefault(ub => ub.fileName.Equals(blobName.ToLower())) ?? null;
+            if (userBlobItem == null)
+                throw new BlobClientException("no data", $"BlobItem({blobName})");
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            cts.CancelAfter(TimeSpan.FromSeconds(10));
+
+            BlobClient blobClient = blobContainerClient.GetBlobClient(userBlobItem.filePath);
+            BlobDownloadResult downloadResult = blobClient.DownloadContent();
+
+            string downdloadPath = relativePath + blobName.ToLower();
+            using (FileStream fileStream = File.OpenWrite(downdloadPath))
+            {
+                downloadResult.Content.ToStream().CopyTo(fileStream);
+            }
         }
     }
 }

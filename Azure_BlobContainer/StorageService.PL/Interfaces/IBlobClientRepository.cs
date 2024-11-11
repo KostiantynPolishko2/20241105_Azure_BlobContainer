@@ -8,6 +8,8 @@ namespace StorageService.PL.Interfaces
 
         public IEnumerable<string> getContainerNames();
 
-        public IEnumerable<UserBlobItem> getBlobItems(string containerName);
+        public IEnumerable<UserBlobItem> getBlobItemNames(string containerName);
+
+        public void downdloadBlobItem(string containerName, string blobName);
     }
 }

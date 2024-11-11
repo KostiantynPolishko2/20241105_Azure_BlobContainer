@@ -49,23 +49,49 @@ namespace StorageService.PL.Controllers
             }
         }
 
-        [HttpGet("blob-items/{containerName}", Name = "GetBlobItems")]
-        public ActionResult<IEnumerable<UserBlobItem>> GetBlobItems([FromRoute] string? containerName)
+        [HttpGet("blob-items/{containerName}", Name = "GetBlobItemNames")]
+        public ActionResult<IEnumerable<UserBlobItem>> GetBlobItemNames([FromRoute] string? containerName)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(containerName))
                     throw new ArgumentNullException();
 
-                return this.blobClientRepository.getBlobItems(containerName).ToArray();
+                return this.blobClientRepository.getBlobItemNames(containerName).ToArray();
+            }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest($"Error! msg: {ex.Message}, details: {ex.InnerException}");
             }
             catch (BlobClientException ex)
             {
                 return NotFound($"Error! msg: {ex.Message} {ex.property}, source: {ex.Source}");
             }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error! msg: {ex.Message}, details: {ex.InnerException}");
+            }
+        }
+
+        [HttpGet("downdload/{containerName}-{blobName}", Name = "DowndloadBlobItem")]
+        public IActionResult DowndloadBlobItem([FromRoute] string containerName, string blobName)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(containerName) || string.IsNullOrWhiteSpace(blobName)) 
+                    throw new ArgumentNullException();
+
+                blobClientRepository.downdloadBlobItem(containerName, blobName);
+
+                return Ok($"downdloaded file {blobName}");
+            }
             catch (ArgumentNullException ex)
             {
                 return BadRequest($"Error! msg: {ex.Message}, details: {ex.InnerException}");
+            }
+            catch (BlobClientException ex)
+            {
+                return NotFound($"Error! msg: {ex.Message} {ex.property}, source: {ex.Source}");
             }
             catch (Exception ex)
             {

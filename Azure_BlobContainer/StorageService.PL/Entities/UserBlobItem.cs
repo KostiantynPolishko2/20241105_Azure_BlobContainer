@@ -11,7 +11,7 @@
                 if (value.Contains('/'))
                 {
                     var index = value.LastIndexOf('/');
-                    fileName = value.Substring(index+1);
+                    fileName = value.Substring(index+1).ToLower();
                 }
                 else
                 {
